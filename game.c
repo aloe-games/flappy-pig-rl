@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
         error("Could not load ttf font");
     }
     
-    boing = al_load_sample("boing.ogg");
+    boing = al_load_sample("assets/jump.wav");
     if (!boing) {
         al_destroy_display(display);
         al_destroy_event_queue(event_queue);
