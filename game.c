@@ -11,6 +11,7 @@
 #include <allegro5/allegro_acodec.h>
 
 #include <time.h>
+#include <math.h>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -28,16 +29,19 @@ const int CACTUS_WIDTH = 48;
 
 const int SCORE_BUFFER_SIZE = 10;
 
-const int CACTUS_BUFFER_SIZE = 10;
+const int CACTUS_BUFFER_SIZE = 100;
 
-const int GAP = 150;
+const int GAP = 100;
+
+typedef struct {
+    int x;
+    int top;
+} cactus;
 
 //error reporting
 void error(char *msg);
 
-void draw_cactus(int x, int top, ALLEGRO_DISPLAY *display, ALLEGRO_BITMAP *cactus_bitmap, ALLEGRO_BITMAP *cactus_revert_bitmap);
-
-int main(int argc, char **argv) {
+int main() {
 
     //handlers for allegro objects
     ALLEGRO_DISPLAY *display = NULL;
@@ -50,6 +54,8 @@ int main(int argc, char **argv) {
     ALLEGRO_BITMAP *cactus_revert_bitmap = NULL;
     ALLEGRO_FONT *font = NULL;
     ALLEGRO_SAMPLE *jump_sound = NULL;
+    ALLEGRO_SAMPLE *fail_sound = NULL;
+
 
     //initialize allegro stuff
     if (!al_init())
@@ -72,7 +78,7 @@ int main(int argc, char **argv) {
     if(!al_init_acodec_addon())
         error("Failed to initialize audio codecs");
     
-    if(!al_reserve_samples(2))
+    if(!al_reserve_samples(3))
         error("Failed to reserve samples");
     
     if ((display = al_create_display(SCREEN_WIDTH, SCREEN_HEIGHT)) == 0)
@@ -104,6 +110,9 @@ int main(int argc, char **argv) {
     
     if ((jump_sound = al_load_sample("assets/jump.wav")) == 0)
         error("Failed to load jump sound");
+        
+    if ((fail_sound = al_load_sample("assets/fail.wav")) == 0)
+        error("Failed to load fail sound");
     
     //allegro event
     ALLEGRO_EVENT ev;
@@ -140,11 +149,18 @@ int main(int argc, char **argv) {
     //random cactus locations
     srand(time(0));
     int i;
-    int cactus_location[CACTUS_BUFFER_SIZE];
-    for (i = 0; i < CACTUS_BUFFER_SIZE; i++)
-        cactus_location[i] = 75 + rand() % 100 + 1;
+    cactus cactus_location[CACTUS_BUFFER_SIZE];
+    for (i = 0; i < CACTUS_BUFFER_SIZE; i++) {
+        cactus_location[i].x = ((SCREEN_WIDTH / 2) * (i + 1)) - CACTUS_WIDTH / 2;
+        cactus_location[i].top = 105 + rand() % 100 + 1;
+    }
     
+    //redraw watcher
     int redraw = true;
+    
+    //testing
+    int passing = 0;
+    
     while(1) {
         //wait for event
         al_wait_for_event(event_queue, &ev);
@@ -171,7 +187,7 @@ int main(int argc, char **argv) {
             } else {
                 //jumping
                 player_dy = -4 * default_dy;
-                al_play_sample(jump_sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                al_play_sample(jump_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
             }
         }
         
@@ -195,24 +211,53 @@ int main(int argc, char **argv) {
                 if (player_y + PLAYER_SIZE >= SCREEN_HEIGHT - GRASS_HEIGHT)
                     play = 0;
                     
-                //colision with current cactus
-                int top = cactus_location[score % CACTUS_BUFFER_SIZE];
-                int x1 = (SCREEN_WIDTH / 2 * (score + 1)) - CACTUS_WIDTH / 2;
-                int x2 = x1 + CACTUS_WIDTH;
-                int player_pos_x = player_x - map_offset + PLAYER_SIZE;
-                
-                if (player_y < top || player_y + PLAYER_SIZE > top + GAP) {
-                    if (x1 <= player_pos_x && player_pos_x <= x2) {
-                        play = 0;
-                    }
-                }
-                    
                 //colision with sky
                 if (player_y < 0)
                     play = 0;
                     
+                //player_x position
+                int player_pos_x = player_x - map_offset;
+                    
+                //colision with current cactus, first check rectangle colision, then check distance beetween middles
+                if (player_pos_x + PLAYER_SIZE >= cactus_location[score].x && player_pos_x <= cactus_location[score].x + CACTUS_WIDTH) {
+                    
+                    //player y middle
+                    int player_middle_y = player_y + PLAYER_SIZE / 2;
+                    //player middle
+                    int player_middle_x = player_pos_x + PLAYER_SIZE / 2;
+                    
+                    //top cactus middle
+                    int top_cactus_middle_x = cactus_location[score].x + CACTUS_WIDTH / 2;
+                    int top_cactus_middle_y = cactus_location[score].top - CACTUS_WIDTH / 2;
+                    //bottom cactus middle
+                    int bottom_cactus_middle_y = top_cactus_middle_y + GAP + CACTUS_WIDTH;
+                    
+                    //if player middle is beetween top and bottom cactus we may pas or not, otherwise we fail for sure
+                    if (player_middle_y >= top_cactus_middle_y && player_middle_y <= bottom_cactus_middle_y) {
+                        //calc distance between player middle and cactus middle
+                        
+                        //distance beetween centers top
+                        double distance_top = sqrt((player_middle_x - top_cactus_middle_x) * (player_middle_x - top_cactus_middle_x) + (player_middle_y - top_cactus_middle_y) * (player_middle_y - top_cactus_middle_y));
+                        //distance beetween centers bottom
+                        double distance_bottom = sqrt((player_middle_x - top_cactus_middle_x) * (player_middle_x - top_cactus_middle_x) + (player_middle_y - bottom_cactus_middle_y) * (player_middle_y - bottom_cactus_middle_y));
+                        
+                        if (distance_top <= PLAYER_SIZE || distance_bottom <= PLAYER_SIZE)
+                            play = 0;
+                    } else {
+                        play = 0;
+                    }
+                }
+                    
                 //add score
-                score = (player_x - map_offset) / (SCREEN_WIDTH / 2);
+                score = player_pos_x / (SCREEN_WIDTH / 2);
+                
+                //fail
+                if (play == 0)
+                    al_play_sample(fail_sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                
+                //end game
+                if (score == CACTUS_BUFFER_SIZE)
+                    play = 0;
             }
             
             redraw = 1;
@@ -227,15 +272,12 @@ int main(int argc, char **argv) {
             al_draw_bitmap(background_bitmap, BACKGROUND_WIDTH + ((int)(map_offset * 0.75) % BACKGROUND_WIDTH), 0, 0);
             
             //draw cactus
-            if (score > 0) {
-                float last = (SCREEN_WIDTH / 2 * score) - CACTUS_WIDTH / 2 + map_offset;
-                draw_cactus(last, cactus_location[(score - 1) % CACTUS_BUFFER_SIZE], display, cactus_bitmap, cactus_revert_bitmap);
+            for (i = score - 1; i < score + 2; i++) {
+                if (i >= 0 && i < CACTUS_BUFFER_SIZE) {
+                    al_draw_bitmap(cactus_revert_bitmap, cactus_location[i].x + map_offset, cactus_location[i].top - CACTUS_HEIGHT, 0);
+                    al_draw_bitmap(cactus_bitmap, cactus_location[i].x + map_offset, cactus_location[i].top + GAP, 0);
+                }
             }
-            float first = (SCREEN_WIDTH / 2 * (score + 1)) - CACTUS_WIDTH / 2 + map_offset;
-            float second = (SCREEN_WIDTH / 2 * (score + 2)) - CACTUS_WIDTH / 2 + map_offset;
-
-            draw_cactus(first, cactus_location[score % CACTUS_BUFFER_SIZE], display, cactus_bitmap, cactus_revert_bitmap);
-            draw_cactus(second, cactus_location[(score + 1) % CACTUS_BUFFER_SIZE], display, cactus_bitmap, cactus_revert_bitmap);
             
             //draw grass and next grass tile
             al_draw_bitmap(grass_bitmap, (int)map_offset % GRASS_WIDTH, SCREEN_HEIGHT - GRASS_HEIGHT, 0);
@@ -243,8 +285,15 @@ int main(int argc, char **argv) {
             al_draw_bitmap(player_bitmap, player_x, player_y, 0);
             
             //draw score
-            snprintf(score_buffer, SCORE_BUFFER_SIZE, "%i", score);
-            al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, score_buffer);
+            if (score == CACTUS_BUFFER_SIZE) {
+                al_draw_text(font, al_map_rgb(205, 50, 50), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, "WIN");
+            } else {
+                snprintf(score_buffer, SCORE_BUFFER_SIZE, "%i", score);
+                if (passing)
+                    al_draw_text(font, al_map_rgb(255, 0, 0), 100, 100, ALLEGRO_ALIGN_CENTER, "NOW");
+                    passing = 0;
+                al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, score_buffer);
+            }
             
             //change buffer
             al_flip_display();
@@ -262,6 +311,7 @@ int main(int argc, char **argv) {
     al_destroy_bitmap(cactus_revert_bitmap);
     al_destroy_font(font);
     al_destroy_sample(jump_sound);
+    al_destroy_sample(fail_sound);
     
     return EXIT_SUCCESS;
 }
@@ -273,9 +323,4 @@ void error(char *msg) {
         fprintf(stderr, "Error: %s\n", msg);
         
     exit(EXIT_FAILURE);
-}
-
-void draw_cactus(int x, int top, ALLEGRO_DISPLAY *display, ALLEGRO_BITMAP *cactus_bitmap, ALLEGRO_BITMAP *cactus_revert_bitmap) {
-    al_draw_bitmap(cactus_revert_bitmap, x, top - CACTUS_HEIGHT, 0);
-    al_draw_bitmap(cactus_bitmap, x, top + GAP, 0);
 }
