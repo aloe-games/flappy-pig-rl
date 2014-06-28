@@ -2,8 +2,8 @@ Images:
 http://opengameart.org/content/platformer-art-deluxe
 http://opengameart.org/content/platformer-art-mushroom-land
 
-Fonts:
-http://openfontlibrary.org/en/font/fantasque-sans-mono
-
 Sounds:
 https://www.freesound.org/people/fins/sounds/172205/
+
+Fonts:
+http://openfontlibrary.org/en/font/fantasque-sans-mono
