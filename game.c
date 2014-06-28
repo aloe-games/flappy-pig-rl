@@ -22,6 +22,8 @@ const int BACKGROUND_WIDTH = 1024;
 const int GRASS_WIDTH = 700;
 const int GRASS_HEIGHT = 70;
 
+const int SCORE_BUFFER_SIZE = 10;
+
 //error reporting
 void error(char *msg);
 
@@ -93,64 +95,112 @@ int main(int argc, char **argv) {
     if ((jump_sound = al_load_sample("assets/jump.wav")) == 0)
         error("Failed to load jump sound");
     
-    int redraw = true;
-    char buffer[11] = {0};
-    int score = 0;
-    int size = 0;
+    //allegro event
+    ALLEGRO_EVENT ev;
     
-    float player_x = SCREEN_WIDTH / 2.0 - PLAYER_SIZE / 2.0;
-    float player_y = SCREEN_HEIGHT / 2.0 - PLAYER_SIZE / 2.0;
-    float player_dx = -1.0;
-    float player_dy = 1.0;
-    
+    //add event listners and start timer
     al_register_event_source(event_queue, al_get_display_event_source(display));
-    al_register_event_source(event_queue, al_get_timer_event_source(timer));
     al_register_event_source(event_queue, al_get_mouse_event_source());
-    
-    al_flip_display();
-    
+    al_register_event_source(event_queue, al_get_timer_event_source(timer));
     al_start_timer(timer);
     
+    //game state, 0 end, 1 playing
+    int play = 0;
+    
+    //player score
+    int score = 0;
+    char score_buffer[SCORE_BUFFER_SIZE + 1];
+
+    //player position
+    float player_x = PLAYER_SIZE / 2;
+    float player_y = SCREEN_HEIGHT / 2 - PLAYER_SIZE / 2 - GRASS_HEIGHT / 2;
+    
+    //map offset
+    float map_offset = 0;
+    
+    //speed
+    float default_dx = 3;
+    float default_dy = 2;
+    
+    //player chanage position
+    float player_dx = default_dx;
+    float player_dy = default_dy;
+    
+    int redraw = true;
     while(1) {
-        ALLEGRO_EVENT ev;
+        //wait for event
         al_wait_for_event(event_queue, &ev);
         
-        if (ev.type == ALLEGRO_EVENT_TIMER) {
-            if (player_x < 0 || player_x > SCREEN_WIDTH - PLAYER_SIZE) {
-                player_dx = -player_dx;
-                score++;
-            }
-            
-            if (player_y < 0 || player_y > SCREEN_HEIGHT - PLAYER_SIZE) {
-                player_dy = -player_dy;
-                score++;
-            }
-            
-            player_x += player_dx;
-            player_y += player_dy;
-            
-            redraw = true;
-        }
-        else if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+        //end game when user try to close window
+        if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             break;
         }
-        else if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
-            score++;
-            al_play_sample(jump_sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+        
+        //user click on scrren, get player up and play sound
+        if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+            //starting game
+            if (play == 0) {
+                play = 1;
+                score = 0;
+                player_x = PLAYER_SIZE / 2;
+                player_y = SCREEN_HEIGHT / 2 - PLAYER_SIZE / 2 - GRASS_HEIGHT / 2;
+                player_dy = default_dy;
+                player_dx = default_dx;
+                map_offset = 0;
+            } else {
+                //jumping
+                player_dy = -4 * default_dy;
+                
+                score++;
+                
+                al_play_sample(jump_sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+            }
         }
         
+        //timer event, move player, check colisions
+        if (ev.type == ALLEGRO_EVENT_TIMER) {
+            
+            //if game is active
+            if (play) {
+                //move player or map if player reach half of screen
+                if(player_x + PLAYER_SIZE / 2 < SCREEN_WIDTH / 2)
+                    player_x += player_dx; 
+                else
+                    map_offset -= player_dx;
+                player_y += player_dy;
+                
+                //slow down player
+                if (player_dy < default_dy)
+                    player_dy += default_dy * 0.5;
+                
+                //colision with grass
+                if (player_y + PLAYER_SIZE >= SCREEN_HEIGHT - GRASS_HEIGHT)
+                    play = 0;
+                    
+                //colision with sky
+                if (player_y < 0)
+                    play = 0;
+            }
+            
+            redraw = 1;
+        }
+
+        //redraw screen
         if (redraw && al_is_event_queue_empty(event_queue)) {
-            redraw = false;
+            redraw = 0;
             
-            al_draw_bitmap(background_bitmap, 0, 0, 0);
+            //draw background and next background tile, 0.75 paralax effect
+            al_draw_bitmap(background_bitmap, (int)(map_offset * 0.75) % BACKGROUND_WIDTH, 0, 0);
+            al_draw_bitmap(background_bitmap, BACKGROUND_WIDTH + ((int)(map_offset * 0.75) % BACKGROUND_WIDTH), 0, 0);
             
-            al_draw_bitmap(grass_bitmap, 0, SCREEN_HEIGHT - GRASS_HEIGHT, 0);
+            //draw grass and next grass tile
+            al_draw_bitmap(grass_bitmap, (int)map_offset % GRASS_WIDTH, SCREEN_HEIGHT - GRASS_HEIGHT, 0);
+            al_draw_bitmap(grass_bitmap, GRASS_WIDTH + ((int)map_offset % GRASS_WIDTH), SCREEN_HEIGHT - GRASS_HEIGHT, 0);
             al_draw_bitmap(player_bitmap, player_x, player_y, 0);
             
             //draw score
-            size = snprintf(buffer, 10, "%i", score);
-            buffer[size] = '\0';
-            al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, buffer);
+            snprintf(score_buffer, SCORE_BUFFER_SIZE, "%i", score);
+            al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, score_buffer);
             
             al_flip_display();
         }
