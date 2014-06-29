@@ -31,11 +31,10 @@ const int SCORE_BUFFER_SIZE = 10;
 
 const int CACTUS_BUFFER_SIZE = 100;
 
-const int GAP = 100;
-
 typedef struct {
     int x;
     int top;
+    int gap;
 } cactus;
 
 //error reporting
@@ -151,8 +150,9 @@ int main() {
     int i;
     cactus cactus_location[CACTUS_BUFFER_SIZE];
     for (i = 0; i < CACTUS_BUFFER_SIZE; i++) {
-        cactus_location[i].x = ((SCREEN_WIDTH / 2) * (i + 1)) - CACTUS_WIDTH / 2;
-        cactus_location[i].top = 105 + rand() % 100 + 1;
+        cactus_location[i].x = ((SCREEN_WIDTH / 2 - i) * (i + 1)) - CACTUS_WIDTH / 2;
+        cactus_location[i].gap = 200 - (i + 1);
+        cactus_location[i].top = (SCREEN_HEIGHT - GRASS_HEIGHT - cactus_location[i].gap) / 2 + rand() % 100 + 1 - 50;
     }
     
     //redraw watcher
@@ -230,7 +230,7 @@ int main() {
                     int top_cactus_middle_x = cactus_location[score].x + CACTUS_WIDTH / 2;
                     int top_cactus_middle_y = cactus_location[score].top - CACTUS_WIDTH / 2;
                     //bottom cactus middle
-                    int bottom_cactus_middle_y = top_cactus_middle_y + GAP + CACTUS_WIDTH;
+                    int bottom_cactus_middle_y = top_cactus_middle_y + cactus_location[score].gap + CACTUS_WIDTH;
                     
                     //if player middle is beetween top and bottom cactus we may pas or not, otherwise we fail for sure
                     if (player_middle_y >= top_cactus_middle_y && player_middle_y <= bottom_cactus_middle_y) {
@@ -249,7 +249,8 @@ int main() {
                 }
                     
                 //add score
-                score = player_pos_x / (SCREEN_WIDTH / 2);
+                if (player_pos_x >= cactus_location[score].x + CACTUS_WIDTH)
+                    score += 1;
                 
                 //fail
                 if (play == 0)
@@ -272,10 +273,10 @@ int main() {
             al_draw_bitmap(background_bitmap, BACKGROUND_WIDTH + ((int)(map_offset * 0.75) % BACKGROUND_WIDTH), 0, 0);
             
             //draw cactus
-            for (i = score - 1; i < score + 2; i++) {
+            for (i = score - 2; i < score + 3; i++) {
                 if (i >= 0 && i < CACTUS_BUFFER_SIZE) {
                     al_draw_bitmap(cactus_revert_bitmap, cactus_location[i].x + map_offset, cactus_location[i].top - CACTUS_HEIGHT, 0);
-                    al_draw_bitmap(cactus_bitmap, cactus_location[i].x + map_offset, cactus_location[i].top + GAP, 0);
+                    al_draw_bitmap(cactus_bitmap, cactus_location[i].x + map_offset, cactus_location[i].top + cactus_location[i].gap, 0);
                 }
             }
             
