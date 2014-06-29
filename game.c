@@ -218,7 +218,7 @@ int main() {
                 //player_x position
                 int player_pos_x = player_x - map_offset;
                     
-                //colision with current cactus, first check rectangle colision, then check distance beetween middles
+                //colision with current cactus, first check rectangle colision, then check distance between middles
                 if (player_pos_x + PLAYER_SIZE >= cactus_location[score].x && player_pos_x <= cactus_location[score].x + CACTUS_WIDTH) {
                     
                     //player y middle
@@ -232,13 +232,13 @@ int main() {
                     //bottom cactus middle
                     int bottom_cactus_middle_y = top_cactus_middle_y + cactus_location[score].gap + CACTUS_WIDTH;
                     
-                    //if player middle is beetween top and bottom cactus we may pas or not, otherwise we fail for sure
+                    //if player middle is between top and bottom cactus we may pas or not, otherwise we fail for sure
                     if (player_middle_y >= top_cactus_middle_y && player_middle_y <= bottom_cactus_middle_y) {
                         //calc distance between player middle and cactus middle
                         
-                        //distance beetween centers top
+                        //distance between centers top
                         double distance_top = sqrt((player_middle_x - top_cactus_middle_x) * (player_middle_x - top_cactus_middle_x) + (player_middle_y - top_cactus_middle_y) * (player_middle_y - top_cactus_middle_y));
-                        //distance beetween centers bottom
+                        //distance between centers bottom
                         double distance_bottom = sqrt((player_middle_x - top_cactus_middle_x) * (player_middle_x - top_cactus_middle_x) + (player_middle_y - bottom_cactus_middle_y) * (player_middle_y - bottom_cactus_middle_y));
                         
                         if (distance_top <= PLAYER_SIZE || distance_bottom <= PLAYER_SIZE)
