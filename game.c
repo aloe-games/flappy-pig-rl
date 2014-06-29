@@ -158,8 +158,13 @@ int main() {
     //redraw watcher
     int redraw = true;
     
-    //testing
-    int passing = 0;
+    //old record
+    FILE *file = fopen("assets/record.txt", "r");
+    if (!file)
+        error("Failed to open records file");
+    int old_record;
+    fscanf(file, "%i", &old_record);
+    fclose(file);
     
     while(1) {
         //wait for event
@@ -175,12 +180,20 @@ int main() {
             //starting game
             if (play == 0 && reset == 0) {
                 reset = 1;
-                score = 0;
+
                 player_x = PLAYER_SIZE / 2;
                 player_y = SCREEN_HEIGHT / 2 - PLAYER_SIZE / 2 - GRASS_HEIGHT / 2;
                 player_dy = default_dy;
                 player_dx = default_dx;
                 map_offset = 0;
+                //save record to file
+                if (score > old_record) {
+                    FILE *file = fopen("assets/record.txt", "w");
+                    fprintf(file, "%i", score);
+                    fclose(file);
+                    old_record = score;
+                }
+                score = 0;
             } else if (reset) {
                 reset = 0;
                 play = 1;
@@ -290,9 +303,6 @@ int main() {
                 al_draw_text(font, al_map_rgb(205, 50, 50), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, "WIN");
             } else {
                 snprintf(score_buffer, SCORE_BUFFER_SIZE, "%i", score);
-                if (passing)
-                    al_draw_text(font, al_map_rgb(255, 0, 0), 100, 100, ALLEGRO_ALIGN_CENTER, "NOW");
-                    passing = 0;
                 al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, score_buffer);
             }
             
