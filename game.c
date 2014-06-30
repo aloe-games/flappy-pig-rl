@@ -1,17 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <errno.h>
-
-#include <allegro5/allegro.h>
-#include <allegro5/allegro_image.h>
-#include <allegro5/allegro_font.h>
-#include <allegro5/allegro_ttf.h>
-#include <allegro5/allegro_audio.h>
-#include <allegro5/allegro_acodec.h>
-
 #include <time.h>
 #include <math.h>
+
+#include "error.h"
+#include "allegro_wrapper.h"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -36,9 +29,6 @@ typedef struct {
     int top;
     int gap;
 } cactus;
-
-//error reporting
-void error(char *msg);
 
 int main() {
 
@@ -325,13 +315,4 @@ int main() {
     al_destroy_sample(fail_sound);
     
     return EXIT_SUCCESS;
-}
-
-void error(char *msg) {
-    if (errno)
-        fprintf(stderr, "Error: %s: %s\n", msg, strerror(errno));
-    else
-        fprintf(stderr, "Error: %s\n", msg);
-        
-    exit(EXIT_FAILURE);
 }
