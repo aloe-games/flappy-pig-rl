@@ -127,19 +127,11 @@ int main() {
     
     char score_buffer[SCORE_BUFFER_SIZE + 1];
 
-    //player position
-    Player player = Player(Player::size / 2, SCREEN_HEIGHT / 2 - Player::size / 2 - GRASS_HEIGHT / 2, player_bitmap);
+    //player
+    Player player = Player(player.getSize() / 2, SCREEN_HEIGHT / 2 - player.getSize() / 2 - GRASS_HEIGHT / 2, player_bitmap, jump_sound);
     
     //map offset
     float map_offset = 0;
-    
-    //speed
-    float default_dx = 3;
-    float default_dy = 2;
-    
-    //player chanage position
-    float player_dx = default_dx;
-    float player_dy = default_dy;
     
     //random cactus locations
     srand(time(0));
@@ -176,11 +168,9 @@ int main() {
             //starting game
             if (play == 0 && reset == 0) {
                 reset = 1;
-
-                player.setLeft(Player::size / 2);
-                player.setTop(SCREEN_HEIGHT / 2 - Player::size / 2 - GRASS_HEIGHT / 2);
-                player_dy = default_dy;
-                player_dx = default_dx;
+                player.setLeft(player.getSize() / 2);
+                player.setTop(SCREEN_HEIGHT / 2 - player.getSize() / 2 - GRASS_HEIGHT / 2);
+                player.resetSpeed();
                 map_offset = 0;
                 //save record to file
                 if (player.getScore() > old_record) {
@@ -195,8 +185,7 @@ int main() {
                 play = 1;
             } else {
                 //jumping
-                player_dy = -4 * default_dy;
-                al_play_sample(jump_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                player.jump();
             }
         }
         
@@ -206,34 +195,26 @@ int main() {
             //if game is active
             if (play) {
                 //move player or map if player reach half of screen
-                if(player.getLeft() + Player::size / 2 < SCREEN_WIDTH / 2)
-                    player.setLeft(player.getLeft() + player_dx); 
-                else
-                    map_offset -= player_dx;
-                player.setTop(player.getTop() + player_dy);
-                
-                //slow down player
-                if (player_dy < default_dy)
-                    player_dy += default_dy * 0.5;
+                if(player.getLeft() + player.getSize() / 2 >= SCREEN_WIDTH / 2)
+                    map_offset -= player.getDx();
+                    
+                player.timer();
                 
                 //colision with grass
-                if (player.getTop() + Player::size >= SCREEN_HEIGHT - GRASS_HEIGHT)
+                if (player.getBottom() >= SCREEN_HEIGHT - GRASS_HEIGHT)
                     play = 0;
                     
                 //colision with sky
                 if (player.getTop() < 0)
                     play = 0;
                     
-                //player_x position
-                int player_pos_x = player.getLeft() - map_offset;
-                    
                 //colision with current cactus, first check rectangle colision, then check distance between middles
-                if (player_pos_x + Player::size >= cactus_location[player.getScore()].x && player_pos_x <= cactus_location[player.getScore()].x + CACTUS_WIDTH) {
+                if (player.getRight() >= cactus_location[player.getScore()].x && player.getLeft() <= cactus_location[player.getScore()].x + CACTUS_WIDTH) {
                     
                     //player y middle
-                    int player_middle_y = player.getTop() + Player::size / 2;
+                    int player_middle_y = player.getTop() + player.getSize() / 2;
                     //player middle
-                    int player_middle_x = player_pos_x + Player::size / 2;
+                    int player_middle_x = player.getLeft() + player.getSize() / 2;
                     
                     //top cactus middle
                     int top_cactus_middle_x = cactus_location[player.getScore()].x + CACTUS_WIDTH / 2;
@@ -250,7 +231,7 @@ int main() {
                         //distance between centers bottom
                         double distance_bottom = sqrt((player_middle_x - top_cactus_middle_x) * (player_middle_x - top_cactus_middle_x) + (player_middle_y - bottom_cactus_middle_y) * (player_middle_y - bottom_cactus_middle_y));
                         
-                        if (distance_top <= Player::size || distance_bottom <= Player::size)
+                        if (distance_top <= player.getSize() || distance_bottom <= player.getSize())
                             play = 0;
                     } else {
                         play = 0;
@@ -258,7 +239,7 @@ int main() {
                 }
                     
                 //add score
-                if (player_pos_x >= cactus_location[player.getScore()].x + CACTUS_WIDTH)
+                if (player.getLeft() >= cactus_location[player.getScore()].x + CACTUS_WIDTH)
                     player.incScore();
                 
                 //fail
@@ -292,7 +273,7 @@ int main() {
             //draw grass and next grass tile
             al_draw_bitmap(grass_bitmap, (int)map_offset % GRASS_WIDTH, SCREEN_HEIGHT - GRASS_HEIGHT, 0);
             al_draw_bitmap(grass_bitmap, GRASS_WIDTH + ((int)map_offset % GRASS_WIDTH), SCREEN_HEIGHT - GRASS_HEIGHT, 0);
-            player.draw();
+            player.draw(map_offset);
             
             //draw score
             if (player.getScore() == CACTUS_BUFFER_SIZE) {
