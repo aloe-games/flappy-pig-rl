@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,6 +14,10 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
 
+#include "player.h"
+
+using namespace std;
+
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
@@ -19,7 +25,6 @@ const float FPS = 60.0;
 
 const int FONT_SIZE = 64;
 
-const int PLAYER_SIZE = 48;
 const int BACKGROUND_WIDTH = 1024;
 const int GRASS_WIDTH = 700;
 const int GRASS_HEIGHT = 70;
@@ -37,7 +42,6 @@ typedef struct {
 } cactus;
 
 int main() {
-
     //handlers for allegro objects
     ALLEGRO_DISPLAY *display = NULL;
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
@@ -50,7 +54,6 @@ int main() {
     ALLEGRO_FONT *font = NULL;
     ALLEGRO_SAMPLE *jump_sound = NULL;
     ALLEGRO_SAMPLE *fail_sound = NULL;
-
 
     //initialize allegro stuff
     if (!al_init())
@@ -122,13 +125,10 @@ int main() {
     int play = 0;
     int reset = 1;
     
-    //player score
-    int score = 0;
     char score_buffer[SCORE_BUFFER_SIZE + 1];
 
     //player position
-    float player_x = PLAYER_SIZE / 2;
-    float player_y = SCREEN_HEIGHT / 2 - PLAYER_SIZE / 2 - GRASS_HEIGHT / 2;
+    Player player = Player(Player::size / 2, SCREEN_HEIGHT / 2 - Player::size / 2 - GRASS_HEIGHT / 2, player_bitmap);
     
     //map offset
     float map_offset = 0;
@@ -177,19 +177,19 @@ int main() {
             if (play == 0 && reset == 0) {
                 reset = 1;
 
-                player_x = PLAYER_SIZE / 2;
-                player_y = SCREEN_HEIGHT / 2 - PLAYER_SIZE / 2 - GRASS_HEIGHT / 2;
+                player.setLeft(Player::size / 2);
+                player.setTop(SCREEN_HEIGHT / 2 - Player::size / 2 - GRASS_HEIGHT / 2);
                 player_dy = default_dy;
                 player_dx = default_dx;
                 map_offset = 0;
                 //save record to file
-                if (score > old_record) {
+                if (player.getScore() > old_record) {
                     FILE *file = fopen("assets/record.txt", "w");
-                    fprintf(file, "%i", score);
+                    fprintf(file, "%i", player.getScore());
                     fclose(file);
-                    old_record = score;
+                    old_record = player.getScore();
                 }
-                score = 0;
+                player.resetScore();
             } else if (reset) {
                 reset = 0;
                 play = 1;
@@ -206,40 +206,40 @@ int main() {
             //if game is active
             if (play) {
                 //move player or map if player reach half of screen
-                if(player_x + PLAYER_SIZE / 2 < SCREEN_WIDTH / 2)
-                    player_x += player_dx; 
+                if(player.getLeft() + Player::size / 2 < SCREEN_WIDTH / 2)
+                    player.setLeft(player.getLeft() + player_dx); 
                 else
                     map_offset -= player_dx;
-                player_y += player_dy;
+                player.setTop(player.getTop() + player_dy);
                 
                 //slow down player
                 if (player_dy < default_dy)
                     player_dy += default_dy * 0.5;
                 
                 //colision with grass
-                if (player_y + PLAYER_SIZE >= SCREEN_HEIGHT - GRASS_HEIGHT)
+                if (player.getTop() + Player::size >= SCREEN_HEIGHT - GRASS_HEIGHT)
                     play = 0;
                     
                 //colision with sky
-                if (player_y < 0)
+                if (player.getTop() < 0)
                     play = 0;
                     
                 //player_x position
-                int player_pos_x = player_x - map_offset;
+                int player_pos_x = player.getLeft() - map_offset;
                     
                 //colision with current cactus, first check rectangle colision, then check distance between middles
-                if (player_pos_x + PLAYER_SIZE >= cactus_location[score].x && player_pos_x <= cactus_location[score].x + CACTUS_WIDTH) {
+                if (player_pos_x + Player::size >= cactus_location[player.getScore()].x && player_pos_x <= cactus_location[player.getScore()].x + CACTUS_WIDTH) {
                     
                     //player y middle
-                    int player_middle_y = player_y + PLAYER_SIZE / 2;
+                    int player_middle_y = player.getTop() + Player::size / 2;
                     //player middle
-                    int player_middle_x = player_pos_x + PLAYER_SIZE / 2;
+                    int player_middle_x = player_pos_x + Player::size / 2;
                     
                     //top cactus middle
-                    int top_cactus_middle_x = cactus_location[score].x + CACTUS_WIDTH / 2;
-                    int top_cactus_middle_y = cactus_location[score].top - CACTUS_WIDTH / 2;
+                    int top_cactus_middle_x = cactus_location[player.getScore()].x + CACTUS_WIDTH / 2;
+                    int top_cactus_middle_y = cactus_location[player.getScore()].top - CACTUS_WIDTH / 2;
                     //bottom cactus middle
-                    int bottom_cactus_middle_y = top_cactus_middle_y + cactus_location[score].gap + CACTUS_WIDTH;
+                    int bottom_cactus_middle_y = top_cactus_middle_y + cactus_location[player.getScore()].gap + CACTUS_WIDTH;
                     
                     //if player middle is between top and bottom cactus we may pas or not, otherwise we fail for sure
                     if (player_middle_y >= top_cactus_middle_y && player_middle_y <= bottom_cactus_middle_y) {
@@ -250,7 +250,7 @@ int main() {
                         //distance between centers bottom
                         double distance_bottom = sqrt((player_middle_x - top_cactus_middle_x) * (player_middle_x - top_cactus_middle_x) + (player_middle_y - bottom_cactus_middle_y) * (player_middle_y - bottom_cactus_middle_y));
                         
-                        if (distance_top <= PLAYER_SIZE || distance_bottom <= PLAYER_SIZE)
+                        if (distance_top <= Player::size || distance_bottom <= Player::size)
                             play = 0;
                     } else {
                         play = 0;
@@ -258,15 +258,15 @@ int main() {
                 }
                     
                 //add score
-                if (player_pos_x >= cactus_location[score].x + CACTUS_WIDTH)
-                    score += 1;
+                if (player_pos_x >= cactus_location[player.getScore()].x + CACTUS_WIDTH)
+                    player.incScore();
                 
                 //fail
                 if (play == 0)
                     al_play_sample(fail_sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                 
                 //end game
-                if (score == CACTUS_BUFFER_SIZE)
+                if (player.getScore() == CACTUS_BUFFER_SIZE)
                     play = 0;
             }
             
@@ -282,7 +282,7 @@ int main() {
             al_draw_bitmap(background_bitmap, BACKGROUND_WIDTH + ((int)(map_offset * 0.75) % BACKGROUND_WIDTH), 0, 0);
             
             //draw cactus
-            for (i = score - 2; i < score + 3; i++) {
+            for (i = player.getScore() - 2; i < player.getScore() + 3; i++) {
                 if (i >= 0 && i < CACTUS_BUFFER_SIZE) {
                     al_draw_bitmap(cactus_revert_bitmap, cactus_location[i].x + map_offset, cactus_location[i].top - CACTUS_HEIGHT, 0);
                     al_draw_bitmap(cactus_bitmap, cactus_location[i].x + map_offset, cactus_location[i].top + cactus_location[i].gap, 0);
@@ -292,13 +292,13 @@ int main() {
             //draw grass and next grass tile
             al_draw_bitmap(grass_bitmap, (int)map_offset % GRASS_WIDTH, SCREEN_HEIGHT - GRASS_HEIGHT, 0);
             al_draw_bitmap(grass_bitmap, GRASS_WIDTH + ((int)map_offset % GRASS_WIDTH), SCREEN_HEIGHT - GRASS_HEIGHT, 0);
-            al_draw_bitmap(player_bitmap, player_x, player_y, 0);
+            player.draw();
             
             //draw score
-            if (score == CACTUS_BUFFER_SIZE) {
+            if (player.getScore() == CACTUS_BUFFER_SIZE) {
                 al_draw_text(font, al_map_rgb(205, 50, 50), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, "WIN");
             } else {
-                snprintf(score_buffer, SCORE_BUFFER_SIZE, "%i", score);
+                snprintf(score_buffer, SCORE_BUFFER_SIZE, "%i", player.getScore());
                 al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_WIDTH - (FONT_SIZE / 8), 0, ALLEGRO_ALIGN_RIGHT, score_buffer);
             }
             
