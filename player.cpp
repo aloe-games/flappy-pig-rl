@@ -30,10 +30,6 @@ int Player::getBottom() {
     return this->top + this->SIZE;
 }
 
-int Player::getSize() {
-    return this->SIZE;
-}
-
 int Player::getScore() {
     return this->score;
 }

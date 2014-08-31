@@ -1,5 +1,5 @@
-#ifndef __player_h
-#define __player_h
+#ifndef _player_h
+#define _player_h
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_audio.h>
@@ -24,7 +24,6 @@ class Player {
         int getTop();
         int getRight();
         int getBottom();
-        int getSize();
         int getScore();
         float getDx();
         float getDy();
