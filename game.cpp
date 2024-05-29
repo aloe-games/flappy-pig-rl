@@ -31,7 +31,14 @@ const int SCORE_BUFFER_SIZE = 10;
 
 const int CACTUS_BUFFER_SIZE = 100;
 
-int main() {
+int main(int argc, char* argv[]) {
+    bool agent = 0;
+    if (argc > 1) {
+        if (strncmp(argv[1], "--agent", 7) == 0) {
+            agent = 1;
+        }
+    }
+
     //handlers for allegro objects
     ALLEGRO_DISPLAY *display = NULL;
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
@@ -178,6 +185,17 @@ int main() {
             
             //if game is active
             if (play) {
+                //environment code
+                int observations[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
+                bool action = 0;
+
+                //agent code
+                if (agent) {
+                    if (action) {
+                        player.jump();
+                    }
+                }
+
                 //move player or map if player reach half of screen
                 if(player.getLeft() + Player::SIZE / 2 >= SCREEN_WIDTH / 2)
                     map_offset -= player.getDx();
@@ -233,6 +251,19 @@ int main() {
                 //end game
                 if (player.getScore() == CACTUS_BUFFER_SIZE)
                     play = false;
+
+                //environment code
+                int reward = 1;
+                bool done = 0;
+                if (!play) {
+                    done = 1;
+                    if (player.getScore() == CACTUS_BUFFER_SIZE) {
+                        reward = 100;
+                    } else {
+                        reward = -100;
+                    }
+                }
+                printf("observations: [%d, %d] action: %d, reward: %d, done: %d\n", observations[0], observations[1], action, reward, done);
             }
             
             redraw = true;

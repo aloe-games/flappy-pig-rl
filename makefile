@@ -4,5 +4,8 @@ all:
 run:
 	./game
 
+agent:
+	./game --agent
+
 clean:
 	rm -f game *.o; echo "0" > assets/record.txt

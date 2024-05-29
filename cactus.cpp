@@ -24,6 +24,10 @@ int Cactus::getGap() {
     return gap;
 }
 
+int Cactus::getBottom() {
+    return top + gap;
+}
+
 void Cactus::draw(int offset) {
     al_draw_bitmap(bitmap[1], x + offset, top - Cactus::HEIGHT, 0);
     al_draw_bitmap(bitmap[0], x + offset, top + gap, 0);
