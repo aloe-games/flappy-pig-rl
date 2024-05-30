@@ -2,7 +2,6 @@
 #define _cactus_h
 
 #include <allegro5/allegro.h>
-#include <allegro5/allegro_audio.h>
 
 class Cactus {
     public:
@@ -13,9 +12,8 @@ class Cactus {
         int top;
         int gap;
         ALLEGRO_BITMAP **bitmap;
-        ALLEGRO_SAMPLE *sound;
     public:
-        Cactus(int x = 0, int gap = 0, ALLEGRO_BITMAP **bitmap = NULL, ALLEGRO_SAMPLE *sound = NULL);
+        Cactus(int x = 0, int gap = 0, ALLEGRO_BITMAP **bitmap = NULL);
         int getX();
         int getTop();
         int getGap();

@@ -2,7 +2,6 @@
 #define _player_h
 
 #include <allegro5/allegro.h>
-#include <allegro5/allegro_audio.h>
 
 class Player {
     public:
@@ -13,13 +12,12 @@ class Player {
         int left;
         int top;
         ALLEGRO_BITMAP *bitmap;
-        ALLEGRO_SAMPLE *sound;
         int score;
         float dx;
         float dy;
     
     public:
-        Player(int top, int left, ALLEGRO_BITMAP *bitmap, ALLEGRO_SAMPLE *sound);
+        Player(int top, int left, ALLEGRO_BITMAP *bitmap);
         int getLeft();
         int getTop();
         int getRight();
@@ -32,7 +30,7 @@ class Player {
         void incScore();
         void resetScore();
         void resetSpeed();
-        void jump(bool sound);
+        void jump();
         void timer();
         void draw(int offset);
 };

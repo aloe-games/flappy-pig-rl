@@ -9,8 +9,6 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
-#include <allegro5/allegro_audio.h>
-#include <allegro5/allegro_acodec.h>
 
 #include "game.h"
 #include "player.h"
@@ -50,8 +48,6 @@ int main(int argc, char* argv[]) {
     ALLEGRO_BITMAP *grass_bitmap = NULL;
     ALLEGRO_BITMAP *cactus_bitmap[2] = {NULL, NULL};
     ALLEGRO_FONT *font = NULL;
-    ALLEGRO_SAMPLE *jump_sound = NULL;
-    ALLEGRO_SAMPLE *fail_sound = NULL;
 
     //initialize allegro stuff
     if (!al_init())
@@ -67,15 +63,6 @@ int main(int argc, char* argv[]) {
         
     if (!al_init_ttf_addon())
         error("Failed to initialize ttf font");
-        
-    if(!al_install_audio())
-        error("Failed to initialize audio");    
-    
-    if(!al_init_acodec_addon())
-        error("Failed to initialize audio codecs");
-    
-    if(!al_reserve_samples(3))
-        error("Failed to reserve samples");
     
     if ((display = al_create_display(SCREEN_WIDTH, SCREEN_HEIGHT)) == 0)
         error("Failed to create display");
@@ -104,12 +91,6 @@ int main(int argc, char* argv[]) {
     if ((font = al_load_ttf_font("assets/font.ttf", FONT_SIZE, 0)) == 0)
         error("Failed to load ttf font");
     
-    if ((jump_sound = al_load_sample("assets/jump.wav")) == 0)
-        error("Failed to load jump sound");
-        
-    if ((fail_sound = al_load_sample("assets/fail.wav")) == 0)
-        error("Failed to load fail sound");
-    
     //allegro event
     ALLEGRO_EVENT ev;
     
@@ -124,7 +105,7 @@ int main(int argc, char* argv[]) {
     bool reset = true;
 
     //player
-    Player player = Player(Player::SIZE / 2, SCREEN_HEIGHT / 2 - Player::SIZE / 2 - GRASS_HEIGHT / 2, player_bitmap, jump_sound);
+    Player player = Player(Player::SIZE / 2, SCREEN_HEIGHT / 2 - Player::SIZE / 2 - GRASS_HEIGHT / 2, player_bitmap);
     
     //map offset
     float map_offset = 0;
@@ -133,16 +114,8 @@ int main(int argc, char* argv[]) {
     srand(time(0));
     Cactus cactuses[CACTUS_BUFFER_SIZE];
     for (int i = 0; i < CACTUS_BUFFER_SIZE; i++) {
-        cactuses[i] = Cactus(((SCREEN_WIDTH / 2 - i) * (i + 1)) - Cactus::WIDTH / 2, 200 - (i + 1), cactus_bitmap, fail_sound);
+        cactuses[i] = Cactus(((SCREEN_WIDTH / 2 - i) * (i + 1)) - Cactus::WIDTH / 2, 200 - (i + 1), cactus_bitmap);
     }
-    
-    //old record
-    FILE *file = fopen("assets/record.txt", "r");
-    if (!file)
-        error("Failed to open records file");
-    int old_record;
-    fscanf(file, "%i", &old_record);
-    fclose(file);
     
     //redraw watcher
     bool redraw = true;
@@ -172,20 +145,15 @@ int main(int argc, char* argv[]) {
                 player.setTop(SCREEN_HEIGHT / 2 - Player::SIZE / 2 - GRASS_HEIGHT / 2);
                 player.resetSpeed();
                 map_offset = 0;
-                //save record to file
-                if (player.getScore() > old_record) {
-                    FILE *file = fopen("assets/record.txt", "w");
-                    fprintf(file, "%i", player.getScore());
-                    fclose(file);
-                    old_record = player.getScore();
-                }
                 player.resetScore();
             } else if (reset) {
                 reset = false;
                 play = true;
             } else {
                 //jumping
-                player.jump(true);
+                if (!agent) {
+                    player.jump();
+                }
             }
         }
         
@@ -205,7 +173,7 @@ int main(int argc, char* argv[]) {
                         action = (observations[0] * w[0] + observations[1] * w[1] + b) > 0.0;
 
                         if (action) {
-                            player.jump(false);
+                            player.jump();
                         }
                     }
                 }
@@ -257,11 +225,7 @@ int main(int argc, char* argv[]) {
                 //add score
                 if (player.getLeft() >= cactuses[player.getScore()].getX() + Cactus::WIDTH)
                     player.incScore();
-                
-                //fail
-                if (play == false && agent == false)
-                    al_play_sample(fail_sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-                
+
                 //end game
                 if (player.getScore() == CACTUS_BUFFER_SIZE)
                     play = false;
@@ -332,8 +296,6 @@ int main(int argc, char* argv[]) {
     al_destroy_bitmap(cactus_bitmap[0]);
     al_destroy_bitmap(cactus_bitmap[1]);
     al_destroy_font(font);
-    al_destroy_sample(jump_sound);
-    al_destroy_sample(fail_sound);
     
     return EXIT_SUCCESS;
 }

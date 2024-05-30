@@ -4,11 +4,10 @@ const int Player::SIZE = 48;
 const float Player::DEFAULT_DX = 3.0;
 const float Player::DEFAULT_DY = 2.0;
 
-Player::Player(int left, int top, ALLEGRO_BITMAP *bitmap, ALLEGRO_SAMPLE *sound) {
+Player::Player(int left, int top, ALLEGRO_BITMAP *bitmap) {
     this->left = left;
     this->top = top;
     this->bitmap = bitmap;
-    this->sound = sound;
     this->score = 0;
     this->dx = this->DEFAULT_DX;
     this->dy = this->DEFAULT_DY;
@@ -63,11 +62,8 @@ void Player::resetSpeed() {
     this->dy = this->DEFAULT_DY;
 }
 
-void Player::jump(bool sound) {
+void Player::jump() {
     this->dy = -4 * this->DEFAULT_DY;
-    if (sound) {
-        al_play_sample(this->sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-    }
 }
 
 void Player::timer() {

@@ -4,12 +4,11 @@
 const int Cactus::HEIGHT = 292;
 const int Cactus::WIDTH = 48;
 
-Cactus::Cactus(int x, int gap, ALLEGRO_BITMAP **bitmap, ALLEGRO_SAMPLE *sound) {
+Cactus::Cactus(int x, int gap, ALLEGRO_BITMAP **bitmap) {
     this->x = x;
     this->top = (SCREEN_HEIGHT - GRASS_HEIGHT - gap) / 2 + rand() % 100 + 1 - 50;
     this->gap = gap;
     this->bitmap = bitmap;
-    this->sound = sound;
 }
 
 int Cactus::getX() {
