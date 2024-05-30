@@ -3,8 +3,6 @@
 #include <time.h>
 #include <math.h>
 
-#include "error.h"
-
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
@@ -51,45 +49,45 @@ int main(int argc, char* argv[]) {
 
     //initialize allegro stuff
     if (!al_init())
-        error("Failed to initialize allegro");
+        perror("Failed to initialize allegro");
         
     if (!al_init_image_addon())
-        error("Failed to initialize image addon");
+        perror("Failed to initialize image addon");
         
     if (!al_install_mouse())
-        error("Failed to initialize mouse");
+        perror("Failed to initialize mouse");
         
     al_init_font_addon();
         
     if (!al_init_ttf_addon())
-        error("Failed to initialize ttf font");
+        perror("Failed to initialize ttf font");
     
     if ((display = al_create_display(SCREEN_WIDTH, SCREEN_HEIGHT)) == 0)
-        error("Failed to create display");
+        perror("Failed to create display");
         
     if ((event_queue = al_create_event_queue()) == 0)
-        error("Failed to create event queue");
+        perror("Failed to create event queue");
     
     if ((timer = al_create_timer(1.0 / FPS)) == 0)
-        error("Failed to create timer");
+        perror("Failed to create timer");
         
     if ((background_bitmap = al_load_bitmap("assets/background.png")) == 0)
-        error("Failed to background bitmap");
+        perror("Failed to background bitmap");
     
     if ((grass_bitmap = al_load_bitmap("assets/grass.png")) == 0)
-        error("Failed to grass bitmap");
+        perror("Failed to grass bitmap");
         
     if ((player_bitmap = al_load_bitmap("assets/player.png")) == 0)
-        error("Failed to player bitmap");
+        perror("Failed to player bitmap");
         
     if ((cactus_bitmap[0] = al_load_bitmap("assets/cactus.png")) == 0)
-        error("Failed to cactus bitmap");
+        perror("Failed to cactus bitmap");
         
     if ((cactus_bitmap[1] = al_load_bitmap("assets/cactus_revert.png")) == 0)
-        error("Failed to cactus revert bitmap");
+        perror("Failed to cactus revert bitmap");
     
     if ((font = al_load_ttf_font("assets/font.ttf", FONT_SIZE, 0)) == 0)
-        error("Failed to load ttf font");
+        perror("Failed to load ttf font");
     
     //allegro event
     ALLEGRO_EVENT ev;
