@@ -11,6 +11,7 @@
 #include "game.hpp"
 #include "player.hpp"
 #include "cactus.hpp"
+#include "agent.hpp"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -28,10 +29,10 @@ const int SCORE_BUFFER_SIZE = 10;
 const int CACTUS_BUFFER_SIZE = 100;
 
 int main(int argc, char* argv[]) {
-    bool agent = 0;
+    bool use_agent = false;
     if (argc > 1) {
         if (strncmp(argv[1], "--agent", 7) == 0) {
-            agent = 1;
+            use_agent = true;
         }
     }
 
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
     //allegro event
     ALLEGRO_EVENT ev;
     
-    //add event listners and start timer
+    //add event listeners and start timer
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_mouse_event_source());
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
@@ -114,16 +115,15 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < CACTUS_BUFFER_SIZE; i++) {
         cactuses[i] = Cactus(((SCREEN_WIDTH / 2 - i) * (i + 1)) - Cactus::WIDTH / 2, 200 - (i + 1), cactus_bitmap);
     }
+
+    // AI agent
+    Agent agent = Agent();
     
     //redraw watcher
     bool redraw = true;
     
     int frame = 0;
     int step = 0;
-
-    //agent weights
-    float w[] = {0., -1.};
-    float b = 10.;
 
     while(true) {
         //wait for event
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
                 play = true;
             } else {
                 //jumping
-                if (!agent) {
+                if (!use_agent) {
                     player.jump();
                 }
             }
@@ -164,14 +164,14 @@ int main(int argc, char* argv[]) {
             //if game is active
             if (play) {
                 //environment code
-                int observations[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
+                int observation[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
                 bool action = 0;
 
                 if (is_step) {
                     //agent action
-                    if (agent) {
+                    if (use_agent) {
                         // neutral net agent
-                        action = (observations[0] * w[0] + observations[1] * w[1] + b) > 0.0;
+                        action = agent.act(observation);
 
                         if (action) {
                             player.jump();
@@ -243,7 +243,10 @@ int main(int argc, char* argv[]) {
 
                 if (is_step || done) {
                     //agent learn
-                    printf("step: %d, observations: [%d, %d] action: %d, reward: %d, done: %d\n", step, observations[0], observations[1], action, reward, done);
+                    int next_observation[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
+                    if (use_agent) {
+                        agent.learn(observation, action, reward, next_observation, done);
+                    }
                     step++;
                 }
 

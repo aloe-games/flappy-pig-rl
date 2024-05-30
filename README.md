@@ -2,4 +2,4 @@
 1. Build `make linux` or `make macos`
 1. Run agent `make agent`
 
-![](agent.png)
+![](docs/screenshot.png)
