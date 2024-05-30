@@ -32,7 +32,7 @@ class Player {
         void incScore();
         void resetScore();
         void resetSpeed();
-        void jump();
+        void jump(bool sound);
         void timer();
         void draw(int offset);
 };

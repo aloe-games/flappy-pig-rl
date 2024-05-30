@@ -63,9 +63,11 @@ void Player::resetSpeed() {
     this->dy = this->DEFAULT_DY;
 }
 
-void Player::jump() {
+void Player::jump(bool sound) {
     this->dy = -4 * this->DEFAULT_DY;
-    al_play_sample(sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+    if (sound) {
+        al_play_sample(this->sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+    }
 }
 
 void Player::timer() {

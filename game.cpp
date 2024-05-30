@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
                 play = true;
             } else {
                 //jumping
-                player.jump();
+                player.jump(true);
             }
         }
         
@@ -197,8 +197,13 @@ int main(int argc, char* argv[]) {
                 if (is_step) {
                     //agent action
                     if (agent) {
+                        // hardcoded agent
+                        if ((observations[0] < 5 && observations[1] < 5) || (observations[1] < 10)) {
+                            action = 1;
+                        }
+
                         if (action) {
-                            player.jump();
+                            player.jump(false);
                         }
                     }
                 }
