@@ -146,6 +146,9 @@ int main(int argc, char* argv[]) {
                 player.resetSpeed();
                 map_offset = 0;
                 player.resetScore();
+                for (int i = 0; i < CACTUS_BUFFER_SIZE; i++) {
+                    cactuses[i].randomTop();
+                }
             } else if (reset) {
                 reset = false;
                 play = true;

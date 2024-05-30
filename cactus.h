@@ -18,6 +18,7 @@ class Cactus {
         int getTop();
         int getGap();
         int getBottom();
+        void randomTop();
         void draw(int offset);
 };
 

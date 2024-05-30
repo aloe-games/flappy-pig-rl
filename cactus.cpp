@@ -6,8 +6,8 @@ const int Cactus::WIDTH = 48;
 
 Cactus::Cactus(int x, int gap, ALLEGRO_BITMAP **bitmap) {
     this->x = x;
-    this->top = (SCREEN_HEIGHT - GRASS_HEIGHT - gap) / 2 + rand() % 100 + 1 - 50;
     this->gap = gap;
+    this->randomTop();
     this->bitmap = bitmap;
 }
 
@@ -25,6 +25,10 @@ int Cactus::getGap() {
 
 int Cactus::getBottom() {
     return top + gap;
+}
+
+void Cactus::randomTop() {
+    this->top = (SCREEN_HEIGHT - GRASS_HEIGHT - gap) / 2 + rand() % 100 + 1 - 50;
 }
 
 void Cactus::draw(int offset) {
