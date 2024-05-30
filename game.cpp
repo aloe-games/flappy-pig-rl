@@ -26,7 +26,7 @@ const int GRASS_HEIGHT = 70;
 
 const int SCORE_BUFFER_SIZE = 10;
 
-const int CACTUS_BUFFER_SIZE = 100;
+const int CACTUS_BUFFER_SIZE = 5;
 
 int main(int argc, char* argv[]) {
     bool use_agent = false;
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         
-        //user click on scrren, get player up and play sound
-        if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+        //user click on screen or agent is playing
+        if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN or use_agent) {
             //starting game
             if (play == false && reset == false) {
                 reset = true;
@@ -243,7 +243,11 @@ int main(int argc, char* argv[]) {
 
                 if (is_step || done) {
                     //agent learn
-                    int next_observation[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
+                    int next_observation[] = {0, 0};
+                    if (!done) {
+                        next_observation[0] = cactuses[player.getScore()].getX() - player.getRight();
+                        next_observation[1] = cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE;
+                    }
                     if (use_agent) {
                         agent.learn(observation, action, reward, next_observation, done);
                     }
