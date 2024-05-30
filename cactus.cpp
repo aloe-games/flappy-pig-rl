@@ -1,5 +1,5 @@
-#include "cactus.h"
-#include "game.h"
+#include "cactus.hpp"
+#include "game.hpp"
 
 const int Cactus::HEIGHT = 292;
 const int Cactus::WIDTH = 48;

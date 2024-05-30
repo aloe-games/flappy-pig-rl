@@ -8,9 +8,9 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 
-#include "game.h"
-#include "player.h"
-#include "cactus.h"
+#include "game.hpp"
+#include "player.hpp"
+#include "cactus.hpp"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;

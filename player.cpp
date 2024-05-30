@@ -1,4 +1,4 @@
-#include "player.h"
+#include "player.hpp"
 
 const int Player::SIZE = 48;
 const float Player::DEFAULT_DX = 3.0;
