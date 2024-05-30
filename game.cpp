@@ -39,6 +39,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    int frame_to_step = FPS / 3;
+
     //handlers for allegro objects
     ALLEGRO_DISPLAY *display = NULL;
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
@@ -145,6 +147,9 @@ int main(int argc, char* argv[]) {
     //redraw watcher
     bool redraw = true;
     
+    int frame = 0;
+    int step = 0;
+
     while(true) {
         //wait for event
         al_wait_for_event(event_queue, &ev);
@@ -182,17 +187,19 @@ int main(int argc, char* argv[]) {
         
         //timer event, move player, check colisions
         if (ev.type == ALLEGRO_EVENT_TIMER) {
-            
+            bool is_step = (frame % frame_to_step) == 0;
             //if game is active
             if (play) {
                 //environment code
                 int observations[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
                 bool action = 0;
 
-                //agent code
-                if (agent) {
-                    if (action) {
-                        player.jump();
+                if (is_step) {
+                    //agent action
+                    if (agent) {
+                        if (action) {
+                            player.jump();
+                        }
                     }
                 }
 
@@ -245,7 +252,7 @@ int main(int argc, char* argv[]) {
                     player.incScore();
                 
                 //fail
-                if (play == false)
+                if (play == false && agent == false)
                     al_play_sample(fail_sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                 
                 //end game
@@ -257,13 +264,20 @@ int main(int argc, char* argv[]) {
                 bool done = 0;
                 if (!play) {
                     done = 1;
-                    if (player.getScore() == CACTUS_BUFFER_SIZE) {
-                        reward = 100;
-                    } else {
+                    if (player.getScore() < CACTUS_BUFFER_SIZE) {
                         reward = -100;
                     }
                 }
-                printf("observations: [%d, %d] action: %d, reward: %d, done: %d\n", observations[0], observations[1], action, reward, done);
+
+                if (is_step || done) {
+                    //agent learn
+                    printf("step: %d, observations: [%d, %d] action: %d, reward: %d, done: %d\n", step, observations[0], observations[1], action, reward, done);
+                    step++;
+                }
+
+                if (done) {
+                    step = 0;
+                }
             }
             
             redraw = true;
