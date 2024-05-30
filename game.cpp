@@ -150,6 +150,10 @@ int main(int argc, char* argv[]) {
     int frame = 0;
     int step = 0;
 
+    //agent weights
+    float w[] = {0., -1.};
+    float b = 10.;
+
     while(true) {
         //wait for event
         al_wait_for_event(event_queue, &ev);
@@ -197,10 +201,8 @@ int main(int argc, char* argv[]) {
                 if (is_step) {
                     //agent action
                     if (agent) {
-                        // hardcoded agent
-                        if ((observations[0] < 5 && observations[1] < 5) || (observations[1] < 10)) {
-                            action = 1;
-                        }
+                        // neutral net agent
+                        action = (observations[0] * w[0] + observations[1] * w[1] + b) > 0.0;
 
                         if (action) {
                             player.jump(false);
