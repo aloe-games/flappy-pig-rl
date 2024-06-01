@@ -6,15 +6,17 @@ class Agent {
         static const double EPS_START;
         static const double EPS_DECAY;
         static const double EPS_END;
+        static const double GAMMA;
+        static const double ALPHA;
     protected:
-        double w[2][2];
+        double W[2][2];
         double b[2];
         int step;
         double eps;
     public:
         Agent();
-        bool act(int observation[2]);
-        void learn(int observation[2], bool action, int reward, int next_observation[2], bool done);
+        bool act(double observation[2]);
+        void learn(double observation[2], bool action, double reward, double next_observation[2], bool done);
 };
 
 double random_value();

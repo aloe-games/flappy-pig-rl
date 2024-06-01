@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
             //if game is active
             if (play) {
                 //environment code
-                int observation[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
+                double observation[] = {cactuses[player.getScore()].getX() - player.getRight(), cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE};
                 bool action = 0;
 
                 if (is_step) {
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
 
                 if (is_step || done) {
                     //agent learn
-                    int next_observation[] = {0, 0};
+                    double next_observation[] = {0, 0};
                     if (!done) {
                         next_observation[0] = cactuses[player.getScore()].getX() - player.getRight();
                         next_observation[1] = cactuses[player.getScore()].getBottom() - player.getTop() - Player::SIZE;
