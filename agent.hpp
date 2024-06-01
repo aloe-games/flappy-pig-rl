@@ -2,9 +2,13 @@
 #define _agent_h
 
 class Agent {
+    public:
+        static const double EPS_START;
+        static const double EPS_DECAY;
+        static const double EPS_END;
     protected:
-        float w[2];
-        float b;
+        double w[2];
+        double b;
         int step;
     public:
         Agent();

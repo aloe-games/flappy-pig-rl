@@ -4,7 +4,7 @@
 extern const int SCREEN_WIDTH;
 extern const int SCREEN_HEIGHT;
 
-extern const float FPS;
+extern const double FPS;
 
 extern const int FONT_SIZE;
 

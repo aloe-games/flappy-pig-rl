@@ -1,8 +1,8 @@
 #include "player.hpp"
 
 const int Player::SIZE = 48;
-const float Player::DEFAULT_DX = 3.0;
-const float Player::DEFAULT_DY = 2.0;
+const double Player::DEFAULT_DX = 3.0;
+const double Player::DEFAULT_DY = 2.0;
 
 Player::Player(int left, int top, ALLEGRO_BITMAP *bitmap) {
     this->left = left;
@@ -33,11 +33,11 @@ int Player::getScore() {
     return this->score;
 }
 
-float Player::getDx() {
+double Player::getDx() {
     return this->dx;
 }
 
-float Player::getDy() {
+double Player::getDy() {
     return this->dx;
 }
 

@@ -16,7 +16,7 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-const float FPS = 60.0;
+const double FPS = 60.0;
 
 const int FONT_SIZE = 64;
 
@@ -26,7 +26,7 @@ const int GRASS_HEIGHT = 70;
 
 const int SCORE_BUFFER_SIZE = 10;
 
-const int CACTUS_BUFFER_SIZE = 100;
+const int CACTUS_BUFFER_SIZE = 10;
 
 int main(int argc, char* argv[]) {
     bool use_agent = false;
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     Player player = Player(Player::SIZE / 2, SCREEN_HEIGHT / 2 - Player::SIZE / 2 - GRASS_HEIGHT / 2, player_bitmap);
     
     //map offset
-    float map_offset = 0;
+    double map_offset = 0;
     
     //random cactus locations
     srand(time(0));

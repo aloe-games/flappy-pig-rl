@@ -4,6 +4,10 @@
 
 using namespace std;
 
+const double Agent::EPS_START = 1.0;
+const double Agent::EPS_DECAY = 0.995;
+const double Agent::EPS_END = 0.01;
+
 Agent::Agent() {
     w[0] = 0.0;
     w[1] = -1.0;
