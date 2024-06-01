@@ -12,29 +12,37 @@ const double Agent::GAMMA = 0.99;
 
 const double Agent::ALPHA = 0.0001;
 
-double random_value() {
+double uniform() {
     return (double) rand() / RAND_MAX;
 }
 
+double maximum(double a, double b) {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
+
+double relu(double x) {
+    return maximum(x, 0);
+}
+
 Agent::Agent() {
-    W[0][0] = random_value();
-    W[0][1] = random_value();
-    W[1][0] = random_value();
-    W[1][1] = random_value();
-    b[0] = random_value();
-    b[1] = random_value();
+    W[0][0] = uniform();
+    W[0][1] = uniform();
+    W[1][0] = uniform();
+    W[1][1] = uniform();
+    b[0] = uniform();
+    b[1] = uniform();
     step = 0;
     eps = Agent::EPS_START;
 }
 
 bool Agent::act(double observation[2]) {
-    if (random_value() > eps) {
+    if (uniform() > eps) {
         double a[2];
         for (int i = 0; i < 2; i++) {
-            a[i] = observation[0] * W[i][0] + observation[1] * W[i][1] + b[i];
-            if (a[i] < 0) {
-                a[i] = 0;
-            }
+            a[i] = relu(observation[0] * W[i][0] + observation[1] * W[i][1] + b[i]);
         }
         return int(a[1] > a[0]);
     }
@@ -48,46 +56,22 @@ void Agent::learn(double observation[2], bool action, double reward, double next
         eps = max(eps * Agent::EPS_DECAY, Agent::EPS_END);
     }
 
-    double A[2], Y[2], dA[2], dZ[2], dW[2][2], db[2];
-    for (int i = 0; i < 2; i++) {
-        cout << "O " << observation[0] << " " << observation[1] << endl;
-        cout << "W " << W[i][0] << " " << W[i][1] << endl;
-        cout << "b " << b[i] << endl;
-        A[i] = observation[0] * W[i][0] + observation[1] * W[i][1] + b[i];
-        cout << "Z " << A[i] << endl;
-        if (A[i] < 0) {
-            A[i] = 0;
-        }
-        if (i == action) {
-            double next_max_rewards[2], next_max_reward;
-            for (int j = 0; j < 2; j++) {
-                next_max_rewards[j] = next_observation[0] * W[j][0] + next_observation[1] * W[j][1] + b[j];
-                if (next_max_rewards[j] < 0) {
-                    next_max_rewards[j] = 0;
-                }
-            }
-            next_max_reward = next_max_rewards[0];
-            if (next_max_rewards[1] > next_max_reward) {
-                next_max_reward = next_max_rewards[1];
-            }
-            Y[i] = reward + (1 - done) * Agent::GAMMA * next_max_reward;
+    double A, Y, dA, dZ, dW[2], db;
+    A = relu(observation[0] * W[action][0] + observation[1] * W[action][1] + b[action]);
+    Y = reward + (1 - int(done)) * Agent::GAMMA * maximum(
+        relu(next_observation[0] * W[0][0] + next_observation[1] * W[0][1] + b[0]),
+        relu(next_observation[0] * W[1][0] + next_observation[1] * W[1][1] + b[1])
+    );
 
-            cout << "Y " << Y[i] << endl;
-            dA[i] = 2 * (A[i] - Y[i]);
-            if (A[i] > 0) {
-                dZ[i] = dA[i];
-            } else {
-                dZ[i] = 0;
-            }
-            dW[i][0] = observation[0] * dZ[i] + observation[1];
-            dW[i][1] = observation[1] * dZ[i] + observation[0];
-            db[i] = dZ[i];
+    dA = 2 * (A - Y);
+    dZ = dA * int(A > 0);
+    dW[0] = observation[0] * dZ;
+    dW[1] = observation[1] * dZ;
+    db = dZ;
 
-            W[i][0] -= Agent::ALPHA * dW[i][0];
-            W[i][1] -= Agent::ALPHA * dW[i][1];
-            b[i] -= Agent::ALPHA * db[i];
-        }
-    }
+    W[action][0] -= Agent::ALPHA * dW[0];
+    W[action][1] -= Agent::ALPHA * dW[1];
+    b[action] -= Agent::ALPHA * db;
 
     if (done) {
         step = 0;

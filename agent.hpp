@@ -19,6 +19,8 @@ class Agent {
         void learn(double observation[2], bool action, double reward, double next_observation[2], bool done);
 };
 
-double random_value();
+double uniform();
+double maximum(double a, double b);
+double relu(double x);
 
 #endif
