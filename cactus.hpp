@@ -4,9 +4,9 @@
 #include <allegro5/allegro.h>
 
 class Cactus {
-    public:
-        static const int HEIGHT;
-        static const int WIDTH;
+public:
+    static const int HEIGHT;
+    static const int WIDTH;
     protected:
         int x;
         int top;

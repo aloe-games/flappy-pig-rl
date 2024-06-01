@@ -69,7 +69,7 @@ void Player::jump() {
 void Player::timer() {
     this->left += this->dx;
     this->top += this->dy;
-    
+
     if (this->dy < this->DEFAULT_DY)
         this->dy += 0.5 * this->DEFAULT_DY;
 }
