@@ -26,7 +26,7 @@ const int GRASS_HEIGHT = 70;
 
 const int SCORE_BUFFER_SIZE = 10;
 
-const int CACTUS_BUFFER_SIZE = 10;
+const int CACTUS_BUFFER_SIZE = 100;
 
 int main(int argc, char* argv[]) {
     bool use_agent = false;
