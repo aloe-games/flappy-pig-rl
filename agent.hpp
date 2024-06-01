@@ -8,9 +8,6 @@ double maximum(double a, double b);
 double relu(double x);
 
 class Agent {
-public:
-    static const double GAMMA;
-    static const double ALPHA;
 protected:
     double W[2][2] = {{uniform(), uniform()}, {uniform(), uniform()}};
     double b[2] = {uniform(), uniform()};
