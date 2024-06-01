@@ -5,6 +5,7 @@ class Agent {
     protected:
         float w[2];
         float b;
+        int step;
     public:
         Agent();
         bool act(int observation[2]);
