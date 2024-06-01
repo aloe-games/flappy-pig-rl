@@ -22,7 +22,7 @@ double relu(double x) {
     return maximum(x, 0);
 }
 
-double Agent::forward(double observation[2], int action) {
+double Agent::forward(double observation[2], bool action) {
     return relu(observation[0] * W[action][0] + observation[1] * W[action][1] + b[action]);
 }
 
@@ -34,7 +34,7 @@ void Agent::learn(double observation[2], bool action, double reward, double next
     double A, Y, dA, dZ, dW[2], db;
 
     A = forward(observation, action);
-    Y = reward + (1 - int(done)) * Agent::GAMMA * maximum(forward(next_observation, 0), forward(next_observation, 1));
+    Y = reward + (1 - done) * Agent::GAMMA * maximum(forward(next_observation, 0), forward(next_observation, 1));
 
     dA = 2 * (A - Y);
     dZ = dA * int(A > 0);

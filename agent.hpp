@@ -15,7 +15,7 @@ protected:
     double W[2][2] = {{uniform(), uniform()}, {uniform(), uniform()}};
     double b[2] = {uniform(), uniform()};
 public:
-    double forward(double observation[2], int action);
+    double forward(double observation[2], bool action);
 
     bool act(double observation[2]);
 
