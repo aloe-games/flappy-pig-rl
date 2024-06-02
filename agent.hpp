@@ -5,11 +5,10 @@ double uniform();
 
 double maximum(double a, double b);
 
-double relu(double x);
-
 class Agent {
 protected:
-    double W[2][2] = {{uniform(), uniform()}, {uniform(), uniform()}};
+    double W[2][2] = {{uniform(), uniform()},
+                      {uniform(), uniform()}};
     double b[2] = {uniform(), uniform()};
 public:
     double forward(double observation[2], bool action);
