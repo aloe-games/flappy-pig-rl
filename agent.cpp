@@ -1,4 +1,4 @@
-#include <iostream>
+#include <math.h>
 
 #include "agent.hpp"
 
@@ -20,7 +20,7 @@ double Agent::forward(double observation[2], bool action) {
 }
 
 bool Agent::act(double observation[2]) {
-    return forward(observation, 1) > forward(observation, 0);
+    return uniform() < exp(forward(observation, 1)) / (exp(forward(observation, 1)) + exp(forward(observation, 0)));
 }
 
 void Agent::learn(double observation[2], bool action, double reward, double next_observation[2], bool done) {
